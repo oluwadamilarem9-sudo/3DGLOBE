@@ -1,0 +1,64 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply box-border;
+  }
+  
+  body {
+    @apply m-0 p-0 overflow-hidden bg-gray-900 font-sans antialiased;
+  }
+  
+  #root {
+    @apply w-full h-screen;
+  }
+}
+
+@layer components {
+  .glass-panel {
+    @apply bg-glassDark backdrop-blur-md border border-white/10 rounded-xl shadow-2xl;
+  }
+  
+  .glass-button {
+    @apply bg-glassDark backdrop-blur-md border border-white/10 rounded-lg shadow-lg hover:bg-white/10 transition-all duration-200;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-gray-800;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-600 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-gray-500;
+}
+
+/* Cesium custom styles */
+.cesium-widget {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.cesium-viewer {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.cesium-viewer-bottom {
+  display: none !important;
+}
+
+.cesium-container {
+  width: 100%;
+  height: 100%;
+}

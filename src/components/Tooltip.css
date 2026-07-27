@@ -1,0 +1,29 @@
+.tooltip {
+  @apply glass-panel absolute pointer-events-none z-50 min-w-48;
+  transform: translate(-50%, -100%);
+  margin-top: -10px;
+}
+
+.tooltip-header {
+  @apply flex items-center gap-2 pb-2 border-b border-white/10;
+}
+
+.tooltip-flag {
+  @apply text-xl;
+}
+
+.tooltip-name {
+  @apply text-white font-semibold;
+}
+
+.tooltip-body {
+  @apply pt-2 flex flex-col gap-1;
+}
+
+.tooltip-item {
+  @apply flex items-center gap-2 text-gray-300 text-sm;
+}
+
+.tooltip-icon {
+  @apply text-gray-400 flex-shrink-0;
+}

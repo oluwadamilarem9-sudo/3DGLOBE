@@ -1,0 +1,56 @@
+.search-bar-container {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 100;
+  width: 320px;
+}
+
+@media (max-width: 768px) {
+  .search-bar-container {
+    top: 10px;
+    right: 10px;
+    left: 10px;
+    width: auto;
+  }
+}
+
+.search-input-wrapper {
+  @apply glass-panel flex items-center gap-3 px-4 py-3;
+}
+
+.search-icon {
+  @apply text-gray-400;
+}
+
+.search-input {
+  @apply flex-1 bg-transparent border-none outline-none text-white placeholder-gray-400 text-base;
+}
+
+.clear-button {
+  @apply text-gray-400 hover:text-white transition-colors p-1;
+}
+
+.search-results {
+  @apply glass-panel mt-2 max-h-96 overflow-y-auto;
+}
+
+.search-result-item {
+  @apply flex items-center gap-3 px-4 py-3 hover:bg-white/10 cursor-pointer transition-colors border-b border-white/5 last:border-b-0;
+}
+
+.country-flag {
+  @apply text-2xl;
+}
+
+.country-info {
+  @apply flex flex-col;
+}
+
+.country-name {
+  @apply text-white font-medium;
+}
+
+.country-capital {
+  @apply text-gray-400 text-sm;
+}

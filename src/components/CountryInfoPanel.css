@@ -1,0 +1,79 @@
+.country-info-panel {
+  @apply glass-panel absolute top-20 right-20 bottom-20 w-96 overflow-y-auto z-50;
+}
+
+@media (max-width: 768px) {
+  .country-info-panel {
+    top: auto;
+    right: 0;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    max-height: 60vh;
+    border-radius: 16px 16px 0 0;
+  }
+}
+
+.panel-header {
+  @apply flex items-center justify-between p-6 border-b border-white/10;
+}
+
+.panel-title {
+  @apply flex items-center gap-3;
+}
+
+.panel-flag {
+  @apply text-4xl;
+}
+
+.country-title {
+  @apply text-white text-xl font-bold m-0;
+}
+
+.country-subtitle {
+  @apply text-gray-400 text-sm m-0 mt-1;
+}
+
+.close-button {
+  @apply text-gray-400 hover:text-white transition-colors p-2;
+}
+
+.panel-content {
+  @apply p-6;
+}
+
+.info-section {
+  @apply mb-6;
+}
+
+.section-title {
+  @apply text-white text-lg font-semibold mb-4 m-0;
+}
+
+.info-grid {
+  @apply grid grid-cols-1 gap-4;
+}
+
+.info-item {
+  @apply flex items-start gap-3 p-3 bg-white/5 rounded-lg;
+}
+
+.info-icon {
+  @apply text-blue-400 flex-shrink-0 mt-0.5;
+}
+
+.info-label {
+  @apply text-gray-400 text-sm mb-1;
+}
+
+.info-value {
+  @apply text-white font-medium;
+}
+
+.neighbors-list {
+  @apply flex flex-wrap gap-2;
+}
+
+.neighbor-tag {
+  @apply px-3 py-1 bg-blue-500/20 text-blue-300 rounded-full text-sm;
+}
