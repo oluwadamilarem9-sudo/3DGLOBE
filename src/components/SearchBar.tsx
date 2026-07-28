@@ -1,28 +1,52 @@
 import { useState, useEffect, useRef } from 'react';
-import { Search, X } from 'lucide-react';
-import { Country } from '../types';
-import { searchCountries } from '../data/countries';
+import { Search, X, MapPin } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-interface SearchBarProps {
-  onCountrySelect: (country: Country) => void;
+interface SearchResult {
+  display_name: string;
+  lat: number;
+  lon: number;
+  type: string;
+  class: string;
 }
 
-export const SearchBar = ({ onCountrySelect }: SearchBarProps) => {
+interface SearchBarProps {
+  onLocationSelect: (location: { lat: number; lng: number; name: string }) => void;
+}
+
+export const SearchBar = ({ onLocationSelect }: SearchBarProps) => {
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState<Country[]>([]);
+  const [results, setResults] = useState<SearchResult[]>([]);
   const [isOpen, setIsOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (query.length > 0) {
-      const filtered = searchCountries(query);
-      setResults(filtered.slice(0, 8)); // Limit to 8 results
-      setIsOpen(true);
-    } else {
-      setResults([]);
-      setIsOpen(false);
-    }
+    const searchLocations = async () => {
+      if (query.length < 2) {
+        setResults([]);
+        setIsOpen(false);
+        return;
+      }
+
+      setIsLoading(true);
+      try {
+        const response = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=8&addressdetails=1`
+        );
+        const data: SearchResult[] = await response.json();
+        setResults(data);
+        setIsOpen(true);
+      } catch (error) {
+        console.error('Search error:', error);
+        setResults([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    const debounceTimer = setTimeout(searchLocations, 300);
+    return () => clearTimeout(debounceTimer);
   }, [query]);
 
   useEffect(() => {
@@ -36,8 +60,12 @@ export const SearchBar = ({ onCountrySelect }: SearchBarProps) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleSelect = (country: Country) => {
-    onCountrySelect(country);
+  const handleSelect = (result: SearchResult) => {
+    onLocationSelect({
+      lat: Number(result.lat),
+      lng: Number(result.lon),
+      name: result.display_name
+    });
     setQuery('');
     setResults([]);
     setIsOpen(false);
@@ -49,13 +77,26 @@ export const SearchBar = ({ onCountrySelect }: SearchBarProps) => {
     setIsOpen(false);
   };
 
+  const getIcon = () => {
+    return <MapPin size={16} className="text-blue-400" />;
+  };
+
+  const formatDisplayName = (name: string) => {
+    // Remove country code and format nicely
+    const parts = name.split(',').map(p => p.trim());
+    if (parts.length > 3) {
+      return parts.slice(0, 3).join(', ') + '...';
+    }
+    return name;
+  };
+
   return (
     <div ref={searchRef} className="search-bar-container">
       <div className="search-input-wrapper">
         <Search className="search-icon" size={20} />
         <input
           type="text"
-          placeholder="Search countries..."
+          placeholder="Search locations..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           className="search-input"
@@ -77,19 +118,28 @@ export const SearchBar = ({ onCountrySelect }: SearchBarProps) => {
             transition={{ duration: 0.2 }}
             className="search-results"
           >
-            {results.map((country) => (
+            {results.map((result, index) => (
               <div
-                key={country.isoCode}
-                onClick={() => handleSelect(country)}
+                key={index}
+                onClick={() => handleSelect(result)}
                 className="search-result-item"
               >
-                <span className="country-flag">{country.flag}</span>
+                {getIcon()}
                 <div className="country-info">
-                  <div className="country-name">{country.name}</div>
-                  <div className="country-capital">{country.capital}</div>
+                  <div className="country-name">{formatDisplayName(result.display_name)}</div>
+                  <div className="country-capital capitalize">{result.type}</div>
                 </div>
               </div>
             ))}
+          </motion.div>
+        )}
+        {isLoading && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="search-results"
+          >
+            <div className="p-4 text-gray-400 text-center">Searching...</div>
           </motion.div>
         )}
       </AnimatePresence>

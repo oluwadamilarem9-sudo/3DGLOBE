@@ -1,4 +1,5 @@
-import { useEffect } from 'react';
+import { useEffect, forwardRef, useImperativeHandle } from 'react';
+import * as Cesium from 'cesium';
 import { useMap } from '../hooks/useMap';
 import { Country } from '../types';
 import { getCountryByName } from '../data/countries';
@@ -9,13 +10,34 @@ interface WorldMapProps {
   onCountryHover?: (country: Country | null) => void;
 }
 
-export const WorldMap = ({ onCountryClick, onCountryHover }: WorldMapProps) => {
+export interface WorldMapRef {
+  flyToLocation: (lat: number, lng: number) => void;
+}
+
+export const WorldMap = forwardRef<WorldMapRef, WorldMapProps>(({ onCountryClick, onCountryHover }, ref) => {
   const {
-    mapContainerRef
+    mapContainerRef,
+    mapRef
   } = useMap({
     onCountryClick,
     onCountryHover
   });
+
+  useImperativeHandle(ref, () => ({
+    flyToLocation: (lat: number, lng: number) => {
+      if (mapRef.current) {
+        mapRef.current.camera.flyTo({
+          destination: Cesium.Cartesian3.fromDegrees(lng, lat, 100000),
+          orientation: {
+            heading: Cesium.Math.toRadians(0),
+            pitch: Cesium.Math.toRadians(-45),
+            roll: 0
+          },
+          duration: 2
+        });
+      }
+    }
+  }));
 
   useEffect(() => {
     const handleCountryClick = (e: any) => {
@@ -49,7 +71,7 @@ export const WorldMap = ({ onCountryClick, onCountryHover }: WorldMapProps) => {
 
   return (
     <div className="world-map-container">
-      <div ref={mapContainerRef} className="cesium-container" />
+      <div ref={mapContainerRef} className="cesium-container" tabIndex={0} />
     </div>
   );
-};
+});
