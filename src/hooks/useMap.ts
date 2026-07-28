@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import * as Cesium from 'cesium';
 import { Country, MapState } from '../types';
+import { getBestImageryProvider, getBestTerrainProvider, supports3DBuildings } from '../config/mapProviders';
 
 interface UseMapOptions {
   onCountryClick?: (country: Country) => void;
@@ -56,18 +57,17 @@ export const useMap = (options: UseMapOptions = {}) => {
         // Enable lighting based on sun position
         viewer.scene.globe.enableLighting = true;
 
-        // Configure high-resolution imagery
+        // Use provider system to get best imagery
         const imageryLayers = viewer.imageryLayers;
         imageryLayers.removeAll();
 
-        // Add ArcGIS World Imagery (high-resolution satellite)
-        const arcGisImagery = await Cesium.ArcGisMapServerImageryProvider.fromUrl(
-          'https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer'
-        );
-        const arcGisLayer = new Cesium.ImageryLayer(arcGisImagery);
-        imageryLayers.add(arcGisLayer);
+        const bestImageryProvider = await getBestImageryProvider();
+        if (bestImageryProvider) {
+          const imageryLayer = new Cesium.ImageryLayer(bestImageryProvider);
+          imageryLayers.add(imageryLayer);
+        }
 
-        // Add OpenStreetMap labels on top
+        // Add OpenStreetMap labels on top (for all providers)
         const osmLabels = new Cesium.OpenStreetMapImageryProvider({
           url: 'https://a.tile.openstreetmap.org/',
           credit: '© OpenStreetMap contributors'
@@ -78,17 +78,19 @@ export const useMap = (options: UseMapOptions = {}) => {
         });
         imageryLayers.add(osmLayer);
 
-        // Enable 3D buildings
-        const osmBuildings = await Cesium.createOsmBuildingsAsync();
-        viewer.scene.primitives.add(osmBuildings);
+        // Use provider system to get best terrain
+        const bestTerrainProvider = await getBestTerrainProvider();
+        if (bestTerrainProvider) {
+          viewer.terrainProvider = bestTerrainProvider;
+        }
 
-        // Add terrain if token is available
-        if (ionToken) {
+        // Enable 3D buildings if supported by provider
+        if (supports3DBuildings()) {
           try {
-            const terrain = await Cesium.CesiumTerrainProvider.fromIonAssetId(1);
-            viewer.terrainProvider = terrain;
-          } catch (terrainErr) {
-            console.warn('Failed to load terrain:', terrainErr);
+            const osmBuildings = await Cesium.createOsmBuildingsAsync();
+            viewer.scene.primitives.add(osmBuildings);
+          } catch (buildingsErr) {
+            console.warn('Failed to load 3D buildings:', buildingsErr);
           }
         }
 
@@ -97,14 +99,18 @@ export const useMap = (options: UseMapOptions = {}) => {
         viewer.scene.fog.density = 0.0001;
 
         // Remove camera restrictions for full exploration
-        viewer.scene.screenSpaceCameraController.maximumZoomDistance = 0;
-        viewer.scene.screenSpaceCameraController.minimumZoomDistance = 100;
+        viewer.scene.screenSpaceCameraController.maximumZoomDistance = 0; // No limit
+        viewer.scene.screenSpaceCameraController.minimumZoomDistance = 100; // Minimum distance
         viewer.scene.screenSpaceCameraController.enableCollisionDetection = false;
         viewer.scene.screenSpaceCameraController.enableTranslate = true;
         viewer.scene.screenSpaceCameraController.enableZoom = true;
         viewer.scene.screenSpaceCameraController.enableRotate = true;
         viewer.scene.screenSpaceCameraController.enableTilt = true;
         viewer.scene.screenSpaceCameraController.enableLook = true;
+
+        // Improve Level of Detail (LOD) for smooth zoom
+        viewer.scene.globe.tileCacheSize = 1000; // Increase tile cache for better LOD
+        viewer.scene.globe.maximumScreenSpaceError = 2; // Better detail at distance
 
         // Enable dynamic atmosphere
         if (viewer.scene.skyAtmosphere) {
